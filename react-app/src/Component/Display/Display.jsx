@@ -1,7 +1,7 @@
-
-
-
 import React, { useState, useEffect } from 'react'
+import style from './Display.module.css'
+
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -16,6 +16,7 @@ import "chartjs-plugin-streaming"
 import { Line } from 'react-chartjs-2';
 import axios from 'axios';
 
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -26,59 +27,86 @@ ChartJS.register(
   Legend
 );
 
+
+// Display component
 export default function Display() {
 
-    let [chart,setChart]=useState([]);
-    let[sec,setSec]=useState(0)
+    let [temp_chart,setTemp_chart]=useState([]);
+    let [pressure_chart,setPressure_chart]=useState([]);
+    let [sec,setSec]=useState(0)
+    let [showPress, setShowPress] = useState(true)
+    let [showTemp, setShowTemp] = useState(false)
+    // let [ledstate,setLedstate]=useState('OFF');
     var label=[]
-    for (let i=0;i<54;i++)
+
+    for (let i=0;i<20;i++)
     {
       label.push(i)
     }
-    
     
       setInterval(() => {
         setSec(sec+=1)
       }, 1000);
 
-    function refreshPage() {
-      window.location.reload(false);
-    }
-    async function getData(){
-        let{data} =await axios("https://run.mocky.io/v3/b4cdd0d0-5e12-495d-b3e0-db648b8dbf22");
-        setChart(data.temp);
-        console.log(data.temp)
-
+    // function refreshPage() {
+    //   window.location.reload(false);
+    // }
+   //172.28.130.221
+    // Get Tempreture sensor readings
+    //https://run.mocky.io/v3/b4cdd0d0-5e12-495d-b3e0-db648b8dbf22
+    async function get_Temp_Data(){
+      let {data} = await axios('http://localhost:5000/temp');
+      console.log(data)
+      setTemp_chart(data);        
     }
  
     useEffect(()=>
     {
-      getData()
+      get_Temp_Data()
     },[sec])
     
-    
-    let y=0
-    // console.log("chart", chart);
-    var data = {
+
+    // Get Pressure sensor Readings
+    async function get_Pressure_Data(){
+      let {data} = await axios('http://localhost:5000/pres');
+      console.log(data)
+      setPressure_chart(data);        
+    }
+ 
+    useEffect(()=>
+    {
+      get_Pressure_Data()
+    },[sec])
+
+    // Send LED_STATE
+    /*async function get_LED_STATE(){
+      let {data} = await axios.post('http://localhost:5000//TrunLed',ledstate);
+      console.log(data)        
+      }
+      useEffect(()=>
+      {
+        get_LED_STATE()
+
+      })*/
+
+    var Temp_data = {
       labels: label.map((index) => index),
-     
-      // labels:setInterval(labels, 1000),
       datasets: [{
         label: `${label.length} Temperature Readings`,
-        data: chart.map((temp)=> temp),
-        // data:setInterval(function() {chart.map((temp)=> temp)}, 1000),
+        // data: temp_chart.map((temp)=> temp),
+        data: temp_chart.map((temp)=> temp),
         backgroundColor: [
-          'rgba(255, 99, 132, 0.2)',
-          'rgba(54, 162, 235, 0.2)',
-          'rgba(255, 206, 86, 0.2)',
-          'rgba(75, 192, 192, 0.2)',
-          'rgba(153, 102, 255, 0.2)',
-          'rgba(255, 159, 64, 0.2)'
+          // 'rgba(255, 99, 132, 0.2)',
+          // 'rgba(54, 162, 235, 0.2)',
+          // 'rgba(255, 206, 86, 0.2)',
+          // 'rgba(75, 192, 192, 0.2)',
+          // 'rgba(153, 102, 255, 0.2)',
+          // 'rgba(255, 159, 64, 0.2)'
         ],
         borderColor: [
-          'rgba(255, 99, 132, 1)',
-          'rgba(54, 162, 235, 1)',
-          'rgba(255, 206, 86, 1)',
+        //   'rgba(255, 99, 132, 1)',
+        //   'rgba(54, 162, 235, 1)',
+        //   'rgba(255, 206, 86, 1)',
           'rgba(75, 192, 192, 1)',
           'rgba(153, 102, 255, 1)',
           'rgba(255, 159, 64, 1)'
@@ -87,62 +115,89 @@ export default function Display() {
       }]
     };
   
+    var Pressure_data = {
+      labels: label.map((index) => index),
+      datasets: [{
+        label: `${label.length} Pressure Readings`,
+        data: pressure_chart.map((temp)=> temp),
+        backgroundColor: [
+          // 'rgba(255, 99, 132, 0.2)',
+          // 'rgba(54, 162, 235, 0.2)',
+          // 'rgba(255, 206, 86, 0.2)',
+          // 'rgba(75, 192, 192, 0.2)',
+          // 'rgba(153, 102, 255, 0.2)',
+          // 'rgba(255, 159, 64, 0.2)'
+        ],
+        borderColor: [
+          // 'rgba(255, 99, 132, 1)',
+          // 'rgba(54, 162, 235, 1)',
+          // 'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(153, 102, 255, 1)',
+          'rgba(255, 159, 64, 1)'
+        ],
+        borderWidth: 1
+      }]
+    };
+
     var options = {
       maintainAspectRatio: false,
-      // labels:setInterval(labels, 1000),
-      // id:realtime,
-      // animations: {
-      //   enabled: true,
-      //   easing: 'linear',
-      //   dynamicAnimation: {
-      //     speed: 1000
-      //   }},
-      //   zoom: {
-      //     enabled: false
-      //   },
-
-        // scales: {
-        //   xAxes: [
-        //     {
-        //       labels:setInterval(labels, 1000),
-              // type: "realtime",
-              // realtime: {
-              //   onRefresh: function() {
-              //     data.datasets[0].data.push({
-              //       x: Date.now(),
-              //       y: chart.map((temp)=>temp)
-              //     });
-              //   },
-              //   delay: 2000
-              // }
-        //     }
-        //   ]
-        // },
-      // stroke:{curve:'smooth'},
-
       legend: {
         labels: {
           fontSize: 25,
         },
       },
     }
-  //   setInterval(function(){
-  //     data.labels.push(Math.floor(Math.random() * 100));
-  //     data.datasets[0].data.push(Math.floor(Math.random() * 100));
-  //     data.update();
-  // }, 5000);
+
+  let [swap,setSwap]=useState(Temp_data) //swap between temperature and pressure data visualization.
+  function Togglepress() //to show pressure data chart
+  {
+    setSwap(Pressure_data)
+    setShowPress((prev)=>!prev)
+    setShowTemp((prev)=>!prev)
+  }
+  function ToggleTemp()//to show temperature data chart
+  {
+    setSwap(Temp_data)
+    setShowTemp((prev)=>!prev)
+    setShowPress((prev)=>!prev)
+  }
+
+  // async function SET_LED_STATE()
+  // {
+  //   setLedstate('ON');
+  //   let response = await axios.post('http://localhost:5000//TrunLed',ledstate);
+  //  // console.log(data)
+  //   console.log(response)        
+  // }
+
   return (
-    <>
-    <div>
-    <Line
-      data={data}
+    <div className='container-fluid'>
+    <div className='pt-4 mt-3'>
+    <Line 
+      data={swap}
       height={400}
       options={options}
-
     />
+    </div>
+
+  <div className='text-center pt-4' >
+  <div className="container">
+    <div className="row">
+      <div className="col-md-5">
+
+       {showPress&&<button className='btn btn-success' onClick={()=>Togglepress()} >  Go to pressure  </button>}
+       {showTemp&&<button className='btn btn-success' onClick={()=>ToggleTemp()} >  Go to temperature  </button>}
+      
+      </div>
+  <div className="col-md-5 offset-2">
+    <button className='btn btn-primary' > Alarm </button>
+  </div></div>
   </div>
-  <button className='btn btn-primary mt-5'  onClick={()=>refreshPage()}>Update Data</button>
+  <h2 className='Time_Header border border-2 py-2 mt-2' > <i className="fa-solid fa-clock"></i> {new Date().toLocaleTimeString()}.</h2>
+  {/* <button className='btn btn-primary mt-5'  onClick={()=>refreshPage()}>Update Data</button> */}
+  </div>
   <p>{sec}</p>
-  </>
+  </div>
   )
 }
